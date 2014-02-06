@@ -24,35 +24,47 @@ class AppRun {
 
   log.info("start application")
 
-  val server: Server = new Server(8080)
-  server.setStopAtShutdown(true)
-  server.setDumpAfterStart(true)
-  server.setDumpBeforeStop(true)
-
-  var handlerCollection = new HandlerCollection()
-  handlerCollection.addHandler(createServletHandler())
-  server.setHandler(handlerCollection)
-
+  val server: Server = createServer(8080)
+  server.setHandler(createHandlerCollection(createServletHandler()))
   server.start()
-
   server.join()
+
+  def createServer(port: Int): Server = {
+    val server: Server = new Server(port)
+    server.setStopAtShutdown(true)
+    server.setDumpAfterStart(true)
+    server.setDumpBeforeStop(true)
+    server
+  }
+
+  def createHandlerCollection(handler: Handler): HandlerCollection = {
+    val handlerCollection = new HandlerCollection()
+    handlerCollection.addHandler(handler)
+    handlerCollection
+  }
 
   def createServletHandler(): Handler = {
     val handler = new ServletContextHandler()
 
-    handler.setInitParameter("contextConfigLocation",
-      "classpath:app-context.xml")
+    handler.setInitParameter("contextConfigLocation", "classpath:app-context.xml")
     handler.addEventListener(new ContextLoaderListener())
 
+    handler.addServlet(createSpringServlet(), "/*")
+    handler.addServlet(createAssetServlet(), "/assets/*")
+
+    handler
+  }
+
+  def createSpringServlet(): ServletHolder = {
     val holder = new ServletHolder(new DispatcherServlet())
     holder.setInitParameter("contextConfigLocation", "")
     holder.setInitOrder(1)
-    handler.addServlet(holder, "/*")
+    holder
+  }
 
+  def createAssetServlet(): ServletHolder = {
     val asset = new AssetServlet("/assets", "/assets", "index.html", Charsets.UTF_8)
-    handler.addServlet(new ServletHolder(asset), "/assets/*")
-
-    handler
+    new ServletHolder(asset)
   }
 
 }
