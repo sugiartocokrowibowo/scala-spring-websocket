@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Web Socket</title>
+</head>
+<body>
+<h1>Chat Web Socket</h1>
+
+<h1>Chat</h1>
+<textarea cols="30" rows="10" id="chat"></textarea>
+
+<p>
+    <input type="text" id="message"/>
+    <input type="button" id="send" value="Send Chat" disabled="disabled" onclick="sendMessage();"/>
+</p>
+
+<script>
+
+    var ws = new WebSocket("ws://localhost:8080/ws")
+
+    ws.onopen = function () {
+        alert("Login!!!");
+        document.getElementById("send").removeAttribute("disabled");
+    };
+
+    ws.onmessage = function (event) {
+        var chat = document.getElementById("chat");
+        var text = document.createTextNode("\n" + event.data);
+        chat.appendChild(text);
+    };
+
+    ws.onclose = function (event) {
+        alert("Logout!");
+        document.getElementById("send").setAttribute("disabled", "disabled");
+    };
+
+    function sendMessage() {
+        var message = document.getElementById("message");
+        ws.send(message.value);
+        document.getElementById("message").value = "";
+    }
+
+</script>
+
+</body>
+</html>

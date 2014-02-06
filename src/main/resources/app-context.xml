@@ -1,0 +1,43 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:websocket="http://www.springframework.org/schema/websocket"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+     http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+     http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket.xsd">
+
+    <!-- Annotation Configuration -->
+    <context:annotation-config/>
+    <mvc:annotation-driven/>
+
+    <!-- Web Socket -->
+    <websocket:handlers>
+        <websocket:mapping path="/ws" handler="chatWebSocket"/>
+        <websocket:handshake-interceptors>
+            <bean class="org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor"/>
+        </websocket:handshake-interceptors>
+    </websocket:handlers>
+
+    <bean id="handshakeHandler" class="org.springframework.web.socket.server.support.DefaultHandshakeHandler">
+        <constructor-arg ref="upgradeStrategy"/>
+    </bean>
+
+    <bean id="upgradeStrategy" class="org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy">
+        <constructor-arg ref="serverFactory"/>
+    </bean>
+
+    <bean id="serverFactory" class="org.eclipse.jetty.websocket.server.WebSocketServerFactory">
+        <constructor-arg>
+            <bean class="org.eclipse.jetty.websocket.api.WebSocketPolicy">
+                <constructor-arg value="SERVER"/>
+                <property name="inputBufferSize" value="8092"/>
+                <property name="idleTimeout" value="600000"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <context:component-scan base-package="com.khannedy.scala.spring.websocket"/>
+
+</beans>
